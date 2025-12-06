@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gen2brain/beeep"
 	"github.com/getlantern/systray"
 	gwnhttp "github.com/link00000000/google-workspace-notify/src/httpserver"
 	"golang.org/x/oauth2"
@@ -118,6 +119,19 @@ func main() {
 				err := exec.Command(cmd, args...).Start()
 				if err != nil {
 					log.Printf("failed to execute command \"%s\": %v", strings.Join(append([]string{cmd}, args...), " "), err)
+				}
+			}()
+
+			mShowNotif := systray.AddMenuItem("Show notification", "Show notification")
+			go func() {
+				for {
+					<-mShowNotif.ClickedCh
+					log.Print("Started")
+					err := beeep.Notify("Test notification", "This was created by the Show notification menu item", trayIcon)
+					if err != nil {
+						log.Printf("notif error: %v", err)
+					}
+					log.Print("End")
 				}
 			}()
 
