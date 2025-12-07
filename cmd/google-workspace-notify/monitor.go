@@ -2,15 +2,19 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/link00000000/google-workspace-notify/src/monitor"
 )
 
 func RunMonitor(ctx context.Context) error {
-	m := monitor.NewMonitor()
+	m, err := monitor.NewMonitor()
+	if err != nil {
+		return fmt.Errorf("failed to create monitor: %v", err)
+	}
 
-	go m.Run()
+	go m.Run() // TODO: Handle error and early terminate
 	defer m.Stop()
 
 	for {
