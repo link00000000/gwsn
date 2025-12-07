@@ -1,4 +1,4 @@
-package monitor
+package gworkspace
 
 import (
 	"context"

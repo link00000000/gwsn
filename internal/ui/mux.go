@@ -3,8 +3,8 @@ package ui
 import (
 	"net/http"
 
-	ui_index "github.com/link00000000/google-workspace-notify/src/ui/index"
-	ui_settings "github.com/link00000000/google-workspace-notify/src/ui/settings"
+	ui_index "github.com/link00000000/google-workspace-notify/internal/ui/index"
+	ui_settings "github.com/link00000000/google-workspace-notify/internal/ui/settings"
 )
 
 func NewHandler() http.Handler {

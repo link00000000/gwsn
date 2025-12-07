@@ -1,4 +1,4 @@
-package main
+package sysnotif
 
 import (
 	"github.com/gen2brain/beeep"
