@@ -20,8 +20,8 @@ type Email struct {
 
 func NewMonitor() *Monitor {
 	return &Monitor{
-		cCalendarReminder: make(chan CalendarReminder),
-		cEmail:            make(chan Email),
+		cCalendarReminder: make(chan CalendarReminder, 32),
+		cEmail:            make(chan Email, 32),
 		stop:              make(chan struct{}),
 	}
 }
@@ -35,12 +35,12 @@ func (m *Monitor) Email() <-chan Email {
 }
 
 func (m *Monitor) Run() {
-	t := time.NewTicker(time.Second)
+	t := time.NewTicker(time.Second * 5)
 	for {
 		select {
 		case <-t.C:
-			pollCalendarReminders()
-			pollEmails()
+			m.pollCalendarReminders()
+			m.pollEmails()
 		case <-m.stop:
 			close(m.cCalendarReminder)
 			close(m.cEmail)
@@ -53,12 +53,16 @@ func (m *Monitor) Stop() {
 	close(m.stop)
 }
 
-func pollCalendarReminders() {
+func (m *Monitor) pollCalendarReminders() {
 	slog.Debug("polling calendar reminders")
 	// TODO
+
+	m.cCalendarReminder <- CalendarReminder{}
 }
 
-func pollEmails() {
+func (m *Monitor) pollEmails() {
 	slog.Debug("polling emails")
 	// TODO
+
+	m.cEmail <- Email{}
 }
