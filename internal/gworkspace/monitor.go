@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"golang.org/x/oauth2"
@@ -23,16 +23,17 @@ const (
 )
 
 type Monitor struct {
-	cCalendarReminder chan CalendarReminder
-	cEmail            chan Email
+	cCalendarReminder chan *CalendarReminder
+	cEmail            chan *cachedEmail
 
 	stop chan struct{}
 
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	calSvc   *calendar.Service
-	gmailSvc *gmail.Service
+	httpClient *http.Client
+	calSvc     *calendar.Service
+	gmailSvc   *gmail.Service
 }
 
 type CalendarReminder struct {
@@ -41,18 +42,12 @@ type CalendarReminder struct {
 	time      time.Time
 }
 
-type Email struct {
-	from    string
-	subject string
-	body    string
-}
-
 func NewMonitor() (*Monitor, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	m := &Monitor{
-		cCalendarReminder: make(chan CalendarReminder, 32),
-		cEmail:            make(chan Email, 32),
+		cCalendarReminder: make(chan *CalendarReminder, 32),
+		cEmail:            make(chan *cachedEmail, 32),
 		stop:              make(chan struct{}),
 		ctx:               ctx,
 		cancel:            cancel,
@@ -74,14 +69,14 @@ func NewMonitor() (*Monitor, error) {
 		return nil, fmt.Errorf("failed to get oauth token: %v", err)
 	}
 
-	client := cfg.Client(m.ctx, tok)
+	m.httpClient = cfg.Client(m.ctx, tok)
 
-	m.calSvc, err = calendar.NewService(m.ctx, option.WithHTTPClient(client))
+	m.calSvc, err = calendar.NewService(m.ctx, option.WithHTTPClient(m.httpClient))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create calendar service", "error", err)
 	}
 
-	m.gmailSvc, err = gmail.NewService(m.ctx, option.WithHTTPClient(client))
+	m.gmailSvc, err = gmail.NewService(m.ctx, option.WithHTTPClient(m.httpClient))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create gmail service", "error", err)
 	}
@@ -89,11 +84,11 @@ func NewMonitor() (*Monitor, error) {
 	return m, nil
 }
 
-func (m *Monitor) CalendarReminder() <-chan CalendarReminder {
+func (m *Monitor) CalendarReminder() <-chan *CalendarReminder {
 	return m.cCalendarReminder
 }
 
-func (m *Monitor) Email() <-chan Email {
+func (m *Monitor) Email() <-chan *cachedEmail {
 	return m.cEmail
 }
 
@@ -237,7 +232,7 @@ func (m *Monitor) pollCalendarReminders(ctx context.Context) error {
 			continue
 		}
 
-		m.cCalendarReminder <- CalendarReminder{eventName, eventDesc, eventStart}
+		m.cCalendarReminder <- &CalendarReminder{eventName, eventDesc, eventStart}
 	}
 
 	return nil
@@ -246,47 +241,14 @@ func (m *Monitor) pollCalendarReminders(ctx context.Context) error {
 func (m *Monitor) pollEmails(ctx context.Context) error {
 	slog.Debug("polling emails")
 
-	msgs, err := m.gmailSvc.Users.Messages.List("me").
-		IncludeSpamTrash(false).
-		Q(""). // TODO: Filter to only get email since last poll
-		Context(ctx).
-		Do()
-
+	gc, err := NewGmailClient(ctx, m.httpClient)
 	if err != nil {
-		return fmt.Errorf("failed to get emails: %v", err)
+		return fmt.Errorf("failed to poll emails: %v", err)
 	}
 
-	for _, msg := range msgs.Messages {
-		var emailFrom *string = nil
-		var emailSubject *string = nil
-
-		for _, h := range msg.Payload.Headers {
-			if strings.ToUpper(h.Name) == "FROM" {
-				emailFrom = &h.Value
-			}
-			if strings.ToUpper(h.Name) == "SUBJECT" {
-				emailSubject = &h.Value
-			}
-		}
-
-		if emailFrom == nil {
-			slog.Warn("failed to get FROM from email headers")
-
-			var unknown = "unknown"
-			emailFrom = &unknown
-		}
-
-		if emailSubject == nil {
-			slog.Warn("failed to get SUBJECT from email headers")
-
-			var blank = ""
-			emailSubject = &blank
-		}
-
-		// TODO: Get email body from message
-		var emailBody = ""
-
-		m.cEmail <- Email{*emailFrom, *emailSubject, emailBody}
+	gc.Sync(ctx)
+	for _, e := range gc.cache.emails {
+		m.cEmail <- e
 	}
 
 	return nil
