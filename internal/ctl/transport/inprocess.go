@@ -36,11 +36,6 @@ func (t *InProcessTransport) Listen(ctx context.Context) error {
 	return nil
 }
 
-func (t *InProcessTransport) Close(ctx context.Context) error {
-	t.connectedPeer = nil
-	return nil
-}
-
 func (t *InProcessTransport) Send(ctx context.Context, msg *Msg) error {
 	if t.connectedPeer == nil {
 		panic("peer not set")
