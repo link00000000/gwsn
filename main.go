@@ -6,12 +6,15 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/link00000000/gwsn/internal/gworkspace"
 	"github.com/link00000000/gwsn/internal/sysnotif"
 	"github.com/link00000000/gwsn/internal/systray"
 	"github.com/link00000000/gwsn/internal/ui"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/api/gmail/v1"
+	"google.golang.org/api/option"
 )
 
 func RunSystray(ctx context.Context, cancel context.CancelFunc) error {
@@ -36,28 +39,73 @@ loop:
 }
 
 func RunMonitor(ctx context.Context) error {
-	m, err := gworkspace.NewMonitor()
-	if err != nil {
-		return fmt.Errorf("failed to create monitor: %v", err)
-	}
-
-	go m.Run() // TODO: Handle error and early terminate
-	defer m.Stop()
-
-	for {
-		select {
-		case <-m.CalendarReminder():
-			slog.Info("recieved calendar reminder") // TODO: add attrs
-			sysnotif.ShowNotification("Upcoming calendar event", "There is an upcoming calendar event")
-			// TODO: notify new calendar reminder
-		case <-m.Email():
-			slog.Info("recieved email") // TODO: add attrs
-			sysnotif.ShowNotification("New email", "There is a new email")
-			// TODO: notify new email
-		case <-ctx.Done():
-			return nil
+	/*
+		m, err := gworkspace.NewMonitor()
+		if err != nil {
+			return fmt.Errorf("failed to create monitor: %v", err)
 		}
+
+		go m.Run() // TODO: Handle error and early terminate
+		defer m.Stop()
+
+		for {
+			select {
+			case <-m.CalendarReminders():
+				slog.Info("recieved calendar reminder") // TODO: add attrs
+				sysnotif.ShowNotification("Upcoming calendar event", "There is an upcoming calendar event")
+				// TODO: notify new calendar reminder
+			case <-m.Email():
+				slog.Info("recieved email") // TODO: add attrs
+				sysnotif.ShowNotification("New email", "There is a new email")
+				// TODO: notify new email
+			case <-ctx.Done():
+				return nil
+			}
+		}
+	*/
+
+	httpClient := gworkspace.NewHttpClient()
+	err := httpClient.Configure(ctx, gmail.GmailReadonlyScope)
+	if err != nil {
+		return fmt.Errorf("error while configuring http client: %v", err)
 	}
+
+	svc, err := gmail.NewService(ctx, option.WithHTTPClient(httpClient.Client))
+	if err != nil {
+		return fmt.Errorf("error while creating gmail service: %v", err)
+	}
+
+	m := gworkspace.NewGmailMonitor(svc, time.Minute*1)
+
+	err = m.Initialize(ctx)
+	if err != nil {
+		return fmt.Errorf("error while initializing gmail monitor: %v", err)
+	}
+
+	g, ctx := errgroup.WithContext(ctx)
+
+	g.Go(func() error {
+		select {
+		case msgs := <-m.Messages():
+			for _, msg := range msgs {
+				sysnotif.ShowNotification("New message from "+msg.From, msg.Subject)
+			}
+		case <-ctx.Done():
+		}
+
+		return nil
+	})
+
+	g.Go(func() error {
+		err = m.Watch(ctx)
+		if err != nil {
+			return fmt.Errorf("error while watching gmail monitor: %v", err)
+		}
+
+		return nil
+	})
+
+	return g.Wait()
 }
 
 func RunHttpServer(ctx context.Context) error {
