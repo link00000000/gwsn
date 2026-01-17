@@ -45,7 +45,12 @@
       in
       {
         devShells.default = pkgs.mkShell {
-          nativeBuildInputs = commonTools;
+          nativeBuildInputs =
+		    commonTools
+		    ++ [
+			  pkgs.libayatana-appindicator
+			  pkgs.gtk3
+		    ];
         };
 
         devShells.windows-amd64 = mkWindowsShell {
