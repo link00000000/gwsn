@@ -17,6 +17,7 @@ type shutdownRequest struct {
 type ServiceContainer struct {
 	gmail          services.GmailService
 	googleCalendar services.GoogleCalendarService
+	http           services.HttpService
 	notification   services.NotificationService
 	systemTray     services.SystemTrayService
 }
@@ -37,6 +38,7 @@ func (svcs *ServiceContainer) runServices(ctx context.Context) error {
 
 	g.Go(func() error { return svcs.gmail.Run(ctx) })
 	g.Go(func() error { return svcs.googleCalendar.Run(ctx) })
+	g.Go(func() error { return svcs.http.Run(ctx) })
 	g.Go(func() error { return svcs.notification.Run(ctx) })
 	g.Go(func() error { return svcs.systemTray.Run(ctx) })
 
@@ -80,6 +82,14 @@ func RegisterGoogleCalendarService(svc services.GoogleCalendarService) {
 
 func GoogleCalendarService() services.GoogleCalendarService {
 	return instance.svcs.googleCalendar
+}
+
+func RegisterHttpService(svc services.HttpService) {
+	instance.svcs.http = svc
+}
+
+func HttpService() services.HttpService {
+	return instance.svcs.http
 }
 
 func RegisterNotificationService(svc services.NotificationService) {

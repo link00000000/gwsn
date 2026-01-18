@@ -1,11 +1,13 @@
 package services
 
-import "context"
+import (
+	"context"
+)
 
 type Service interface {
-	Setup() error
+	Setup() error // TODO: remove
 	Run(ctx context.Context) error
-	Shutdown() error
+	Shutdown() error // TODO: remove
 }
 
 type GmailService interface {
@@ -13,6 +15,10 @@ type GmailService interface {
 }
 
 type GoogleCalendarService interface {
+	Service
+}
+
+type HttpService interface {
 	Service
 }
 

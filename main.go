@@ -11,6 +11,7 @@ import (
 	"github.com/link00000000/gwsn/internal/config"
 	"github.com/link00000000/gwsn/internal/services/gmail"
 	"github.com/link00000000/gwsn/internal/services/googlecalendar"
+	"github.com/link00000000/gwsn/internal/services/http"
 	"github.com/link00000000/gwsn/internal/services/notification"
 	"github.com/link00000000/gwsn/internal/services/systemtray"
 	"github.com/link00000000/gwsn/internal/services/systemtray/assets"
@@ -57,6 +58,11 @@ func main() {
 
 	// Google calendar service
 	app.RegisterGoogleCalendarService(googlecalendar.NewService())
+
+	httpServiceCfg := http.HttpServiceConfig{
+		Addr: "127.0.0.1:8080",
+	}
+	app.RegisterHttpService(http.NewService(httpServiceCfg))
 
 	// Notification service
 	app.RegisterNotificationService(notification.NewBeeepNotificationService(AppName))
