@@ -31,12 +31,7 @@ func (d *JSONDuration) UnmarshalJSON(data []byte) error {
 }
 
 type gmailAccountJsonConfig struct {
-	Name         *string `json:"name"`
-	TokenType    *string `json:"tokenType"`
-	AccessToken  *string `json:"accessToken"`
-	RefreshToken *string `json:"refreshToken"`
-	Expiry       *string `json:"expiry"`
-	ExpiresIn    *int    `json:"expiresIn"`
+	Username *string `json:"username"`
 }
 
 type gmailJsonConfig struct {
@@ -89,7 +84,7 @@ func (p *JsonConfigProvider) Apply(cfg *Config) error {
 			for _, acc := range *jsonCfg.Gmail.Accounts {
 				var targetAccount *GmailAccountConfig
 
-				idx := slices.IndexFunc(cfg.Gmail.Accounts, func(a GmailAccountConfig) bool { return a.Name == *acc.Name })
+				idx := slices.IndexFunc(cfg.Gmail.Accounts, func(a GmailAccountConfig) bool { return a.Username == *acc.Username })
 				if idx == -1 {
 					cfg.Gmail.Accounts = append(cfg.Gmail.Accounts, GmailAccountConfig{})
 					targetAccount = &cfg.Gmail.Accounts[len(cfg.Gmail.Accounts)-1]
@@ -97,12 +92,7 @@ func (p *JsonConfigProvider) Apply(cfg *Config) error {
 					targetAccount = &cfg.Gmail.Accounts[idx]
 				}
 
-				applyProp(&targetAccount.Name, acc.Name)
-				applyProp(&targetAccount.TokenType, acc.TokenType)
-				applyProp(&targetAccount.AccessToken, acc.AccessToken)
-				applyProp(&targetAccount.RefreshToken, acc.RefreshToken)
-				applyProp(&targetAccount.Expiry, acc.Expiry)
-				applyProp(&targetAccount.ExpiresIn, acc.ExpiresIn)
+				applyProp(&targetAccount.Username, acc.Username)
 			}
 		}
 

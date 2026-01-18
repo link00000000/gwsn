@@ -10,12 +10,7 @@ import (
 )
 
 type GmailAccountConfig struct {
-	Name         string
-	TokenType    string
-	AccessToken  string
-	RefreshToken string
-	Expiry       string
-	ExpiresIn    int
+	Username string
 }
 
 type GmailConfig struct {

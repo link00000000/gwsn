@@ -12,12 +12,7 @@ type InMemoryConfigProvider struct {
 var _ ConfigProvider = (*InMemoryConfigProvider)(nil)
 
 type GmailAccountInMemoryConfig struct {
-	Name         *string
-	TokenType    *string
-	AccessToken  *string
-	RefreshToken *string
-	Expiry       *string
-	ExpiresIn    *int
+	Username *string
 }
 
 type GmailInMemoryConfig struct {
@@ -41,7 +36,7 @@ func (p *InMemoryConfigProvider) Apply(cfg *Config) error {
 			for _, acc := range *p.cfg.Gmail.Accounts {
 				var targetAccount *GmailAccountConfig
 
-				idx := slices.IndexFunc(cfg.Gmail.Accounts, func(a GmailAccountConfig) bool { return a.Name == *acc.Name })
+				idx := slices.IndexFunc(cfg.Gmail.Accounts, func(a GmailAccountConfig) bool { return a.Username == *acc.Username })
 				if idx == -1 {
 					cfg.Gmail.Accounts = append(cfg.Gmail.Accounts, GmailAccountConfig{})
 					targetAccount = &cfg.Gmail.Accounts[len(cfg.Gmail.Accounts)-1]
@@ -49,12 +44,7 @@ func (p *InMemoryConfigProvider) Apply(cfg *Config) error {
 					targetAccount = &cfg.Gmail.Accounts[idx]
 				}
 
-				applyProp(&targetAccount.Name, acc.Name)
-				applyProp(&targetAccount.TokenType, acc.TokenType)
-				applyProp(&targetAccount.AccessToken, acc.AccessToken)
-				applyProp(&targetAccount.RefreshToken, acc.RefreshToken)
-				applyProp(&targetAccount.Expiry, acc.Expiry)
-				applyProp(&targetAccount.ExpiresIn, acc.ExpiresIn)
+				applyProp(&targetAccount.Username, acc.Username)
 			}
 		}
 

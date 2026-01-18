@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"log/slog"
 	"os"
 	"time"
@@ -45,17 +46,8 @@ func main() {
 
 	// Gmail service
 	gmailAccounts := make([]gmail.Account, len(cfg.Gmail.Accounts))
-	for i, acc := range cfg.Gmail.Accounts {
-		gmailAccounts[i] = gmail.Account{
-			Name: acc.Name,
-			Creds: gmail.AccountCredentials{
-				TokenType:    acc.TokenType,
-				AccessToken:  acc.AccessToken,
-				RefreshToken: acc.RefreshToken,
-				Expiry:       acc.Expiry,
-				ExpiresIn:    acc.ExpiresIn,
-			},
-		}
+	for i, a := range cfg.Gmail.Accounts {
+		gmailAccounts[i].Name = a.Username
 	}
 
 	app.RegisterGmailService(gmail.NewService(cfg.Gmail.PollingInterval, gmailAccounts))
