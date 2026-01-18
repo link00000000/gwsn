@@ -51,6 +51,7 @@
 			  pkgs.libayatana-appindicator
 			  pkgs.gtk3
 		    ];
+		  hardeningDisable = [ "fortify" ]; # Required to prevent error when running `dlv test`
         };
 
         devShells.windows-amd64 = mkWindowsShell {
