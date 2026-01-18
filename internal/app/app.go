@@ -24,10 +24,10 @@ type ServiceContainer struct {
 func (svcs *ServiceContainer) setupServices() error {
 	var err error
 
-	errors.Join(err, svcs.gmail.Setup())
-	errors.Join(err, svcs.googleCalendar.Setup())
-	errors.Join(err, svcs.notification.Setup())
-	errors.Join(err, svcs.systemTray.Setup())
+	err = errors.Join(err, svcs.gmail.Setup())
+	err = errors.Join(err, svcs.googleCalendar.Setup())
+	err = errors.Join(err, svcs.notification.Setup())
+	err = errors.Join(err, svcs.systemTray.Setup())
 
 	return err
 }
@@ -46,10 +46,10 @@ func (svcs *ServiceContainer) runServices(ctx context.Context) error {
 func (svcs *ServiceContainer) shutdownServices() error {
 	var err error
 
-	errors.Join(err, svcs.gmail.Shutdown())
-	errors.Join(err, svcs.googleCalendar.Shutdown())
-	errors.Join(err, svcs.notification.Shutdown())
-	errors.Join(err, svcs.systemTray.Shutdown())
+	err = errors.Join(err, svcs.gmail.Shutdown())
+	err = errors.Join(err, svcs.googleCalendar.Shutdown())
+	err = errors.Join(err, svcs.notification.Shutdown())
+	err = errors.Join(err, svcs.systemTray.Shutdown())
 
 	return err
 }
