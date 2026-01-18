@@ -9,27 +9,27 @@ import (
 
 type GoogleApplicationConfig []byte
 
-type Account struct {
+type ServiceConfigAccount struct {
 	Username string
 }
 
-type gmailService struct {
-	pollingInterval time.Duration
-	appConfig       GoogleApplicationConfig
-	accounts        []Account
+type ServiceConfig struct {
+	Accounts        []ServiceConfigAccount
+	AppConfig       GoogleApplicationConfig
+	PollingInterval time.Duration
 }
 
-var _ services.GmailService = (*gmailService)(nil)
+type service struct {
+	cfg ServiceConfig
+}
 
-func NewService(accounts []Account, appConfig GoogleApplicationConfig, pollingInterval time.Duration) *gmailService {
-	return &gmailService{
-		accounts:        accounts,
-		appConfig:       appConfig,
-		pollingInterval: pollingInterval,
-	}
+var _ services.GmailService = (*service)(nil)
+
+func NewService(cfg ServiceConfig) *service {
+	return &service{cfg: cfg}
 }
 
 // implements [services.GmailService]
-func (*gmailService) Run(ctx context.Context) error {
+func (*service) Run(ctx context.Context) error {
 	return nil
 }

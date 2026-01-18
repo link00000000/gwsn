@@ -9,41 +9,41 @@ import (
 	"github.com/link00000000/gwsn/internal/services"
 )
 
-type HttpServiceRoute struct {
+type ServiceConfigRoute struct {
 	PathPrefix string
 	Handler    http.Handler
 }
 
-type HttpServiceConfig struct {
+type ServiceConfig struct {
 	Addr   string
-	Routes []HttpServiceRoute
+	Routes []ServiceConfigRoute
 }
 
-type httpService struct {
-	server *http.Server
+type service struct {
+	cfg ServiceConfig
 }
 
-var _ services.HttpService = (*httpService)(nil)
+var _ services.HttpService = (*service)(nil)
 
-func NewService(cfg HttpServiceConfig) *httpService {
+func NewService(cfg ServiceConfig) *service {
+	return &service{cfg: cfg}
+}
+
+// implements [services.HttpService]
+func (svc *service) Run(ctx context.Context) error {
 	mux := http.NewServeMux()
-	for _, r := range cfg.Routes {
+	for _, r := range svc.cfg.Routes {
 		mux.Handle(r.PathPrefix, http.StripPrefix(r.PathPrefix, r.Handler))
 	}
 
 	server := &http.Server{
-		Addr:    cfg.Addr,
+		Addr:    svc.cfg.Addr,
 		Handler: mux,
 	}
 
-	return &httpService{server: server}
-}
-
-// implements [services.HttpService]
-func (svc *httpService) Run(ctx context.Context) error {
 	errCh := make(chan error, 1)
 	go func() {
-		err := svc.server.ListenAndServe()
+		err := server.ListenAndServe()
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errCh <- err
 		}
@@ -55,7 +55,7 @@ func (svc *httpService) Run(ctx context.Context) error {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err := svc.server.Shutdown(shutdownCtx)
+	err := server.Shutdown(shutdownCtx)
 	err = errors.Join(err, <-errCh)
 
 	return err

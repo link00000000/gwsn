@@ -8,25 +8,26 @@ import (
 	"github.com/link00000000/gwsn/internal/services"
 )
 
-type systraySystemTrayService struct {
-	title    string
-	trayIcon []byte
+type ServiceConfig struct {
+	Title    string
+	TrayIcon []byte
 }
 
-var _ services.SystemTrayService = (*systraySystemTrayService)(nil)
+type service struct {
+	cfg ServiceConfig
+}
 
-func NewSystraySystemTrayService(title string, trayIcon []byte) *systraySystemTrayService {
-	return &systraySystemTrayService{
-		title:    title,
-		trayIcon: trayIcon,
-	}
+var _ services.SystemTrayService = (*service)(nil)
+
+func NewSystraySystemTrayService(cfg ServiceConfig) *service {
+	return &service{cfg: cfg}
 }
 
 // implements [services.SystemTrayService]
-func (svc *systraySystemTrayService) Run(ctx context.Context) error {
+func (svc *service) Run(ctx context.Context) error {
 	systray.Run(func() {
-		systray.SetIcon(svc.trayIcon)
-		systray.SetTitle(svc.title)
+		systray.SetIcon(svc.cfg.TrayIcon)
+		systray.SetTitle(svc.cfg.Title)
 
 		systray.AddSeparator()
 		exitEntry := systray.AddMenuItem("Exit", "")

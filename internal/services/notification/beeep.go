@@ -7,29 +7,33 @@ import (
 	"github.com/link00000000/gwsn/internal/services"
 )
 
-type beeepNotificationService struct {
-	appName string
+type ServiceConfig struct {
+	AppName string
 }
 
-var _ services.NotificationService = (*beeepNotificationService)(nil)
+type service struct {
+	cfg ServiceConfig
+}
 
-func NewBeeepNotificationService(appName string) *beeepNotificationService {
-	return &beeepNotificationService{
-		appName: appName,
-	}
+var _ services.NotificationService = (*service)(nil)
+
+func NewBeeepNotificationService(cfg ServiceConfig) *service {
+	return &service{cfg: cfg}
 }
 
 // implements [services.NotificationService]
-func (svc *beeepNotificationService) Run(ctx context.Context) error {
-	beeep.AppName = svc.appName
+func (svc *service) Run(ctx context.Context) error {
+	beeep.AppName = svc.cfg.AppName
 
 	return nil
 }
 
-func (*beeepNotificationService) Notify(title, body string) {
+// implements [services.NotificationService]
+func (*service) Notify(title, body string) {
 	beeep.Notify(title, body, "")
 }
 
-func (*beeepNotificationService) NotifyWithIcon(title, body string, icon []byte) {
+// implements [services.NotificationService]
+func (*service) NotifyWithIcon(title, body string, icon []byte) {
 	beeep.Notify(title, body, icon)
 }

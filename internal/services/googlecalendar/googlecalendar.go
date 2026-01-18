@@ -6,15 +6,19 @@ import (
 	"github.com/link00000000/gwsn/internal/services"
 )
 
-type googleCalendarService struct{}
+type ServiceConfig struct{}
 
-var _ services.GoogleCalendarService = (*googleCalendarService)(nil)
+type service struct {
+	cfg ServiceConfig
+}
 
-func NewService() *googleCalendarService {
-	return &googleCalendarService{}
+var _ services.GoogleCalendarService = (*service)(nil)
+
+func NewService(cfg ServiceConfig) *service {
+	return &service{cfg: cfg}
 }
 
 // implements [services.GoogleCalendarService]
-func (*googleCalendarService) Run(ctx context.Context) error {
+func (*service) Run(ctx context.Context) error {
 	return nil
 }

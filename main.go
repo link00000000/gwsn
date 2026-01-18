@@ -49,26 +49,34 @@ func main() {
 	}
 
 	// Gmail service
-	gmailAccounts := make([]gmail.Account, len(cfg.Gmail.Accounts))
-	for i, a := range cfg.Gmail.Accounts {
-		gmailAccounts[i].Username = a.Username
+	gmailConfig := gmail.ServiceConfig{}
+	gmailConfig.AppConfig = appConfig
+	gmailConfig.PollingInterval = cfg.Gmail.PollingInterval
+	for _, a := range cfg.Gmail.Accounts {
+		gmailConfig.Accounts = append(gmailConfig.Accounts, gmail.ServiceConfigAccount{Username: a.Username})
 	}
-
-	app.RegisterGmailService(gmail.NewService(gmailAccounts, appConfig, cfg.Gmail.PollingInterval))
+	app.RegisterGmailService(gmail.NewService(gmailConfig))
 
 	// Google calendar service
-	app.RegisterGoogleCalendarService(googlecalendar.NewService())
+	googleCalendarConfig := googlecalendar.ServiceConfig{}
+	app.RegisterGoogleCalendarService(googlecalendar.NewService(googleCalendarConfig))
 
-	httpServiceCfg := http.HttpServiceConfig{
-		Addr: "127.0.0.1:8080",
-	}
-	app.RegisterHttpService(http.NewService(httpServiceCfg))
+	// Http service
+	httpConfig := http.ServiceConfig{}
+	httpConfig.Addr = "127.0.0.1:8080"
+	httpConfig.Routes = []http.ServiceConfigRoute{}
+	app.RegisterHttpService(http.NewService(httpConfig))
 
 	// Notification service
-	app.RegisterNotificationService(notification.NewBeeepNotificationService(AppName))
+	notificationConfig := notification.ServiceConfig{}
+	notificationConfig.AppName = AppName
+	app.RegisterNotificationService(notification.NewBeeepNotificationService(notificationConfig))
 
 	// System tray service
-	app.RegisterSystemTrayService(systemtray.NewSystraySystemTrayService(AppName, assets.TrayIcon))
+	systemTrayConfig := systemtray.ServiceConfig{}
+	systemTrayConfig.Title = AppName
+	systemTrayConfig.TrayIcon = assets.TrayIcon
+	app.RegisterSystemTrayService(systemtray.NewSystraySystemTrayService(systemTrayConfig))
 
 	if err := app.Run(context.Background()); err != nil {
 		panic(err)
