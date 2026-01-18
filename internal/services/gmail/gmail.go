@@ -7,41 +7,39 @@ import (
 	"github.com/link00000000/gwsn/internal/services"
 )
 
-type AccountCredentials struct {
-	TokenType    string
-	AccessToken  string
-	RefreshToken string
-	Expiry       string
-	ExpiresIn    int
-}
+type GoogleApplicationConfig []byte
 
 type Account struct {
-	Name  string
-	Creds AccountCredentials
+	Username string
 }
 
 type gmailService struct {
 	pollingInterval time.Duration
+	appConfig       GoogleApplicationConfig
 	accounts        []Account
 }
 
 var _ services.GmailService = (*gmailService)(nil)
 
-func NewService(pollingInterval time.Duration, accounts []Account) *gmailService {
+func NewService(accounts []Account, appConfig GoogleApplicationConfig, pollingInterval time.Duration) *gmailService {
 	return &gmailService{
-		pollingInterval: pollingInterval,
 		accounts:        accounts,
+		appConfig:       appConfig,
+		pollingInterval: pollingInterval,
 	}
 }
 
+// implements [services.GmailService]
 func (*gmailService) Setup() error {
 	return nil
 }
 
+// implements [services.GmailService]
 func (*gmailService) Run(ctx context.Context) error {
 	return nil
 }
 
+// implements [services.GmailService]
 func (*gmailService) Shutdown() error {
 	return nil
 }

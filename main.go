@@ -28,6 +28,9 @@ var (
 			PollingInterval: &DefaultGmailPollingInterval,
 		},
 	}
+
+	// go:embed credentials.json
+	appConfig gmail.GoogleApplicationConfig
 )
 
 func main() {
@@ -47,10 +50,10 @@ func main() {
 	// Gmail service
 	gmailAccounts := make([]gmail.Account, len(cfg.Gmail.Accounts))
 	for i, a := range cfg.Gmail.Accounts {
-		gmailAccounts[i].Name = a.Username
+		gmailAccounts[i].Username = a.Username
 	}
 
-	app.RegisterGmailService(gmail.NewService(cfg.Gmail.PollingInterval, gmailAccounts))
+	app.RegisterGmailService(gmail.NewService(gmailAccounts, appConfig, cfg.Gmail.PollingInterval))
 
 	// Google calendar service
 	app.RegisterGoogleCalendarService(googlecalendar.NewService())
