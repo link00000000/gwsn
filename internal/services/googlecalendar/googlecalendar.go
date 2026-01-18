@@ -14,14 +14,7 @@ func NewService() *googleCalendarService {
 	return &googleCalendarService{}
 }
 
-func (*googleCalendarService) Setup() error {
-	return nil
-}
-
+// implements [services.GoogleCalendarService]
 func (*googleCalendarService) Run(ctx context.Context) error {
-	return nil
-}
-
-func (*googleCalendarService) Shutdown() error {
 	return nil
 }

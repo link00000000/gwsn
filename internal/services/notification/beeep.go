@@ -19,17 +19,10 @@ func NewBeeepNotificationService(appName string) *beeepNotificationService {
 	}
 }
 
-func (svc *beeepNotificationService) Setup() error {
+// implements [services.NotificationService]
+func (svc *beeepNotificationService) Run(ctx context.Context) error {
 	beeep.AppName = svc.appName
 
-	return nil
-}
-
-func (*beeepNotificationService) Run(ctx context.Context) error {
-	return nil
-}
-
-func (*beeepNotificationService) Shutdown() error {
 	return nil
 }
 

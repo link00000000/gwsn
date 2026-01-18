@@ -39,10 +39,7 @@ func NewService(cfg HttpServiceConfig) *httpService {
 	return &httpService{server: server}
 }
 
-func (*httpService) Setup() error {
-	return nil
-}
-
+// implements [services.HttpService]
 func (svc *httpService) Run(ctx context.Context) error {
 	errCh := make(chan error, 1)
 	go func() {
@@ -62,8 +59,4 @@ func (svc *httpService) Run(ctx context.Context) error {
 	err = errors.Join(err, <-errCh)
 
 	return err
-}
-
-func (*httpService) Shutdown() error {
-	return nil
 }

@@ -30,16 +30,6 @@ func NewService(accounts []Account, appConfig GoogleApplicationConfig, pollingIn
 }
 
 // implements [services.GmailService]
-func (*gmailService) Setup() error {
-	return nil
-}
-
-// implements [services.GmailService]
 func (*gmailService) Run(ctx context.Context) error {
-	return nil
-}
-
-// implements [services.GmailService]
-func (*gmailService) Shutdown() error {
 	return nil
 }

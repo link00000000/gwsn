@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 
 	"github.com/link00000000/gwsn/internal/services"
@@ -22,17 +21,6 @@ type ServiceContainer struct {
 	systemTray     services.SystemTrayService
 }
 
-func (svcs *ServiceContainer) setupServices() error {
-	var err error
-
-	err = errors.Join(err, svcs.gmail.Setup())
-	err = errors.Join(err, svcs.googleCalendar.Setup())
-	err = errors.Join(err, svcs.notification.Setup())
-	err = errors.Join(err, svcs.systemTray.Setup())
-
-	return err
-}
-
 func (svcs *ServiceContainer) runServices(ctx context.Context) error {
 	g, ctx := errgroup.WithContext(ctx)
 
@@ -43,17 +31,6 @@ func (svcs *ServiceContainer) runServices(ctx context.Context) error {
 	g.Go(func() error { return svcs.systemTray.Run(ctx) })
 
 	return g.Wait()
-}
-
-func (svcs *ServiceContainer) shutdownServices() error {
-	var err error
-
-	err = errors.Join(err, svcs.gmail.Shutdown())
-	err = errors.Join(err, svcs.googleCalendar.Shutdown())
-	err = errors.Join(err, svcs.notification.Shutdown())
-	err = errors.Join(err, svcs.systemTray.Shutdown())
-
-	return err
 }
 
 type Application struct {
@@ -117,10 +94,6 @@ func Logger() *slog.Logger {
 }
 
 func Run(ctx context.Context) error {
-	if err := instance.svcs.setupServices(); err != nil {
-		return errors.Join(err, instance.svcs.shutdownServices())
-	}
-
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -139,11 +112,7 @@ func Run(ctx context.Context) error {
 		return nil
 	})
 
-	if err := g.Wait(); err != nil {
-		return errors.Join(err, instance.svcs.shutdownServices())
-	}
-
-	return instance.svcs.shutdownServices()
+	return g.Wait()
 }
 
 func RequestShutdown(requestedByUser bool, reason string) {

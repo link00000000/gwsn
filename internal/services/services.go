@@ -5,9 +5,7 @@ import (
 )
 
 type Service interface {
-	Setup() error // TODO: remove
 	Run(ctx context.Context) error
-	Shutdown() error // TODO: remove
 }
 
 type GmailService interface {

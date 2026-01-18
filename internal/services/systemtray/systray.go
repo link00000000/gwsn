@@ -22,10 +22,7 @@ func NewSystraySystemTrayService(title string, trayIcon []byte) *systraySystemTr
 	}
 }
 
-func (*systraySystemTrayService) Setup() error {
-	return nil
-}
-
+// implements [services.SystemTrayService]
 func (svc *systraySystemTrayService) Run(ctx context.Context) error {
 	systray.Run(func() {
 		systray.SetIcon(svc.trayIcon)
@@ -46,9 +43,5 @@ func (svc *systraySystemTrayService) Run(ctx context.Context) error {
 		}
 	}, nil)
 
-	return nil
-}
-
-func (*systraySystemTrayService) Shutdown() error {
 	return nil
 }
