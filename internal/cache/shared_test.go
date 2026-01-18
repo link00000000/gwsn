@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/link00000000/gwsn/internal/cache"
+	"golang.org/x/oauth2"
 )
 
 var now = time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -38,4 +39,10 @@ func (c *TestCache[T]) Store(key string, value *cache.Value[T]) error {
 	}
 
 	return nil
+}
+
+type TestTokenSource func() (*oauth2.Token, error)
+
+func (s TestTokenSource) Token() (*oauth2.Token, error) {
+	return s()
 }
