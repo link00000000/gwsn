@@ -11,7 +11,7 @@ import (
 func TestTokenSource_CacheMiss(t *testing.T) {
 	c := cache.NewMemory[*oauth2.Token](nil)
 	src := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: "test", Expiry: now.Add(time.Hour)})
-	src = cache.NewTokenSource(c, src)
+	src = cache.NewTokenSource(c, "token", src)
 	src.(*cache.TokenSource).SetTimeSource(func() time.Time { return now })
 
 	tok, err := src.Token()
@@ -37,7 +37,7 @@ func TestTokenSource_CacheHit(t *testing.T) {
 		return &oauth2.Token{AccessToken: "second", Expiry: now.Add(time.Hour)}, nil
 	}
 
-	src := cache.NewTokenSource(c, s)
+	src := cache.NewTokenSource(c, "token", s)
 	src.SetTimeSource(func() time.Time { return now })
 
 	// first time populates the cache
@@ -69,7 +69,7 @@ func TestTokenSource_CacheExpired(t *testing.T) {
 		return &oauth2.Token{AccessToken: "second", Expiry: now.Add(time.Hour)}, nil
 	}
 
-	src := cache.NewTokenSource(c, s)
+	src := cache.NewTokenSource(c, "token", s)
 	src.SetTimeSource(func() time.Time { return now })
 
 	// first time populates the cache
